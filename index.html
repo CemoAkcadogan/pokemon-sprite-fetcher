@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>pokemonList</title>
+</head>
+<body>
+    <i><p>CEMO</p></i>
+
+  <ul id="pokemonList"></ul>
+
+  <script src="https://unpkg.com/apollo-client-browser@1.7.0"></script>
+  
+  <script>
+    const apolloClient = new Apollo.lib.ApolloClient({
+      networkInterface: Apollo.lib.createNetworkInterface({
+        uri: 'https://beta.pokeapi.co/graphql/v1beta',
+        transportBatching: true,
+      }),
+      connectToDevTools: true,
+    })
+    
+    const GET_POKEMON_SPRITES_QUERY = Apollo.gql`
+      query GetPokemonSprites {
+        pokemons: pokemon_v2_pokemon(where: { name: { _ilike: "c%" } }, limit: 1000) {
+          name
+          sprites: pokemon_v2_pokemonsprites {
+            id
+            sprites
+          }
+        }
+      }
+    `;
+    
+    apolloClient.query({
+      query: GET_POKEMON_SPRITES_QUERY,
+    })
+      .then((response) => {
+        const pokemons = response.data.pokemons;
+        const pokemonListElement = document.getElementById("pokemonList");
+        
+        pokemons.forEach((pokemon) => {
+          const listItem = document.createElement("li");
+          const pokemonName = pokemon.name;
+          const pokemonId = pokemon.sprites[0].id;
+          const spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`;
+          
+          const image = document.createElement("img");
+          image.src = spriteUrl;
+          image.alt = pokemonName;
+          
+          listItem.textContent = pokemonName;
+          listItem.appendChild(image);
+          pokemonListElement.appendChild(listItem);
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  </script>
+</body>
+</html>
